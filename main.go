@@ -5,9 +5,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/manedurphy/golang-start/api"
+	"github.com/manedurphy/golang-start/db"
 )
 
 func main() {
+
+	db.Connect()
+
 	router := gin.Default()
 
 	router.GET("/people", api.GetPeople)
