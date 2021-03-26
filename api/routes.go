@@ -8,12 +8,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/manedurphy/golang-start/db"
+	"gorm.io/gorm"
 )
 
-var id int = 0
-
 type Person struct {
-	ID     int    `json:"id"`
+	gorm.Model
 	Name   string `json:"name" validate:"required"`
 	Age    int    `json:"age" validate:"required"`
 	Degree bool   `json:"hasDegree"`
@@ -68,10 +68,7 @@ func CreatePerson(c *gin.Context) {
 		return
 	}
 
-	id += 1
-	p.ID = id
-
-	people = append(people, p)
+	db.DB.Create(p)
 
 	c.JSON(200, p)
 }
