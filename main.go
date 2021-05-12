@@ -17,6 +17,7 @@ func main() {
 	router.GET("/people", api.GetPeople)
 	router.GET("/person/:id", api.GetPerson)
 	router.POST("/person", api.CreatePerson)
+	router.DELETE("/person/:id", api.DeletePersion)
 
 	log.Fatal(router.Run(":8080"))
 

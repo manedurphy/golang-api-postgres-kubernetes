@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goapp-deployment
+  labels:
+    app: goapp
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: goapp
+  template:
+    metadata:
+      labels:
+        app: goapp
+    spec:
+      containers:
+      - name: goapp
+        # image: k8s/golang-start # use this and imagePullPolicy if running locally with Kind, comment both of these out if deploying on Linode
+        # imagePullPolicy: Never
+        image: manedurphy/golang-postgres-api # replace with your own docker image if you are deploying, or use this one
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DSN
+          valueFrom:
+            secretKeyRef:
+              name: db-connection
+              key: DSN

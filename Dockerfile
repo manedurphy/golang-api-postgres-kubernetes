@@ -1,4 +1,4 @@
-FROM golang
+FROM golang as build
 
 WORKDIR /app
 
@@ -9,12 +9,14 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o main .
+RUN CGO_ENABLED=0 GOOS=linux go build -o main .
+
+FROM alpine:latest
 
 WORKDIR /dist
 
-RUN cp /app/main .
+COPY --from=build /app/main ./main
 
 EXPOSE 8080
 
-CMD ["/dist/main"]
+ENTRYPOINT [ "/dist/main" ]

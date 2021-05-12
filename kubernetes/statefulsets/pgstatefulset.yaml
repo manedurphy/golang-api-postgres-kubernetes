@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pg-statefulset
+  labels:
+    pg: pgdb
+
+spec:
+  serviceName: "pg-service"
+  replicas: 1
+  selector:
+    matchLabels:
+      pg: pgdb
+  template:
+    metadata:
+      labels:
+        pg: pgdb
+    spec:
+      containers:
+      - name: pg
+        image: postgres
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: pg-config
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pg-config
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_DB
+          valueFrom:
+            secretKeyRef:
+              name: pg-config
+              key: POSTGRES_DB
+        - name: PGDATA
+          valueFrom:
+            secretKeyRef:
+              name: pg-config
+              key: PGDATA
+        volumeMounts:
+        - name: pg-data
+          mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+  - metadata:
+      name: pg-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      # storageClassName: standard
+      storageClassName: linode-block-storage
+      resources:
+        requests:
+          storage: 10Gi

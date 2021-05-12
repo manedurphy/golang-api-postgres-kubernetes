@@ -4,58 +4,54 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/manedurphy/golang-start/db"
-	"gorm.io/gorm"
+	"github.com/manedurphy/golang-start/db/models"
 )
 
-type Person struct {
-	gorm.Model
-	Name   string `json:"name" validate:"required"`
-	Age    int    `json:"age" validate:"required"`
-	Degree bool   `json:"hasDegree"`
-}
-
-var people []Person
-
-func GetPerson(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-
-	if err != nil {
-		c.JSON(500, gin.H{"message": "Invalid ID"})
-		return
-	}
-
-	peopleLength := len(people)
-
-	if peopleLength > 0 && id <= peopleLength && id > 0 {
-		var index int = id - 1
-		p := people[index]
-
-		c.JSON(200, p)
-		return
-	}
-	c.JSON(404, gin.H{"message": "No person with that ID"})
+type errMsg struct {
+	MSG string `json:"message"`
 }
 
 func GetPeople(c *gin.Context) {
+	var people []models.Person
+	db.DB.Find(&people)
 	c.JSON(200, people)
+}
+
+func GetPerson(c *gin.Context) {
+	var person models.Person
+	id := c.Param("id")
+	db.DB.First(&person, "id = ?", id)
+
+	if person.ID == 0 {
+		c.JSON(404, errMsg{MSG: "did not find person with that ID"})
+		return
+	}
+
+	c.JSON(200, person)
+}
+
+func DeletePersion(c *gin.Context) {
+	id := c.Param("id")
+	db.DB.Delete(&models.Person{}, id)
+
+	c.JSON(204, "")
 }
 
 func CreatePerson(c *gin.Context) {
 	person, _ := ioutil.ReadAll(c.Request.Body)
 
-	var p Person
+	var p models.Person
 	JsonErr := json.Unmarshal([]byte(person), &p)
 
 	if JsonErr != nil {
 		fmt.Println(JsonErr)
 	}
 
-	if p.Degree != true {
+	if !p.Degree {
 		p.Degree = false
 	}
 
@@ -68,7 +64,7 @@ func CreatePerson(c *gin.Context) {
 		return
 	}
 
-	db.DB.Create(p)
+	db.DB.Create(&p)
 
-	c.JSON(200, p)
+	c.JSON(201, p)
 }
